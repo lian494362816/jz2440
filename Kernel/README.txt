@@ -6,6 +6,12 @@
 
 编译
     cp config_ok .config
+
+    修改Makefile
+        416 config %config: scripts_basic outputmakefile FORCE
+            =>%config: scripts_basic outputmakefile FORCE
+
+        1449 / %/: prepare scripts FORCE
+            =>%/: prepare scripts FORCE
+
     make uImage
-
-
