@@ -5,3 +5,5 @@ echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
 
 ifconfig eth0 192.168.1.80
+telnetd -p 23
+
