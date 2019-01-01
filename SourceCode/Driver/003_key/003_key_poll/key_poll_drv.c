@@ -143,7 +143,7 @@ static int key_poll_open(struct inode *inode, struct file *file)
     return 0;
 
 free_irq:
-    for (; i >= 0; i--)
+    for (i -= 1; i >= 0; i--)
     {
         free_irq(key_poll_irqs[i].irq, &key_poll_pins[i]);
     }
