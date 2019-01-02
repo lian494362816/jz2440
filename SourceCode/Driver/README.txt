@@ -13,3 +13,10 @@
         使用poll机制来读取按键值
     004_key_signal
         上层注册signal， 底层通过fasyc给上层发信号
+    005_key_lock  
+        使用全局变量来当锁，文件允许同时打开1次
+    006_key_lock_atomic
+        使用原子变量来当锁，文件允许同时打开1次
+    007_key_lock_mutex
+        使用互斥锁，文件允许同时打开1次
+
