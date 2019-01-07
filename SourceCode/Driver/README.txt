@@ -41,4 +41,5 @@
     测试方法3：
         exec 0</dev/tty1  然后按下按键，可以看到数据显示在串口上
         
-        
+005_platform 
+    使用driver-bus-device 来控制led
