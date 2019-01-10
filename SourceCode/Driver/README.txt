@@ -43,3 +43,20 @@
         
 005_platform 
     使用driver-bus-device 来控制led
+
+006_lcd
+    001_lcd
+        将lcd屏点亮，通过drv_test可以让屏幕呈现不同的颜色
+
+    002_lcd_fb
+        通过frame buff 将lcd屏点亮
+        测试方法: 
+            1)
+                insmod cfbcopyarea.ko
+                insmod cfbfillrect.ko
+                insmod cfbimgblt.ko
+                insmod lcd_drv.ko
+            2)
+                echo hello > /dev/tty1, lcd屏上显示hello表示成功
+
+    
