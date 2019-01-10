@@ -45,6 +45,9 @@
     使用driver-bus-device 来控制led
 
 006_lcd
+    注:如果要测试，需要先替换kerne
+    006_lcd/kernel_ko/uImage_no_lcd, 这个kernel 不会启动lcd
+
     001_lcd
         将lcd屏点亮，通过drv_test可以让屏幕呈现不同的颜色
 
@@ -59,4 +62,3 @@
             2)
                 echo hello > /dev/tty1, lcd屏上显示hello表示成功
 
-    
