@@ -265,8 +265,34 @@ ssize_t lcd_read(struct file *file, char __user *buff, size_t count, loff_t *ppo
 
 ssize_t lcd_write(struct file *file, const char __user *buff, size_t count, loff_t *ppos)
 {
-    //copy_from_user(lcd_vir_addr, buff, count);
-    memset(lcd_vir_addr, (unsigned char )*buff, LCD_X_RES * LCD_Y_RES * 2);
+    if (count > LCD_X_RES * LCD_Y_RES * 2)
+    {
+        PRINT_ERR("max size: %d\n", LCD_X_RES * LCD_Y_RES * 2);
+        return E2BIG;
+    }
+
+    if (copy_from_user(lcd_vir_addr, buff, count) )
+    {
+        return -EFAULT;
+    }
+    //memset(lcd_vir_addr, (unsigned char )*buff, LCD_X_RES * LCD_Y_RES * 2);
+
+    return count;
+}
+int (*mmap) (struct file *, struct vm_area_struct *);
+
+static int lcd_mmap(struct file *file, struct vm_area_struct *vma)
+{
+    unsigned long size = 0;
+
+    size = vma->vm_end - vma->vm_start;
+    PRINT_INFO("mmap size:%ldK \n", size / 1024);
+    //if (remap_pfn_range(vma, vma->vm_start, virt_to_phys(lcd_vir_addr) >> PAGE_SHIFT, size, vma->vm_page_prot))
+    if (remap_pfn_range(vma, vma->vm_start, lcd_phy_addr >> PAGE_SHIFT, size, vma->vm_page_prot))
+    {
+        PRINT_ERR("mmap fail \n");
+        return -1;
+    }
 
     return 0;
 }
@@ -277,6 +303,7 @@ static struct file_operations lcd_fops = {
     .release = lcd_release,
     .read = lcd_read,
     .write = lcd_write,
+    .mmap = lcd_mmap,
 };
 
 int lcd_init(void)
