@@ -61,4 +61,7 @@
                 insmod lcd_drv.ko
             2)
                 echo hello > /dev/tty1, lcd屏上显示hello表示成功
-
+    003_lcd_bmp
+        在lcd 屏上显示图片
+        
+    
