@@ -14,10 +14,10 @@
 #define LCD_X_RES (480)
 #define LCD_Y_RES (272)
 
-struct bmp_color_t{
+struct bmp_color_t{
     unsigned char blue;
+    unsigned char green;
     unsigned char red;
-    unsigned char greed;
 }__attribute__((packed));
 
 int bmp_read(char *file)
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
             break;
         }
         /* RGB 565 */
-        fb_buff[pos] = ((bmp_color.red >> 3) << 11) | ((bmp_color.greed >> 2) << 5) | (bmp_color.blue >> 3);
+        fb_buff[pos] = ((bmp_color.red >> 3) << 11) | ((bmp_color.green >> 2) << 5) | (bmp_color.blue >> 3);
         i++;
         line_w ++;
         if (info_head.width == line_w)

@@ -28,8 +28,8 @@ typedef struct bmp_info_head_t{
 
 typedef struct rgb_quad_t{
     unsigned char blue;
+    unsigned char green;
     unsigned char red;
-    unsigned char greed;
     unsigned char reserved;//luminance reserved
 }__attribute__((packed)) rgb_quad;
 
