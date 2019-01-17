@@ -1,16 +1,16 @@
 yaffs_source_util_larger_small_page_nand.tar.bz2
     可以制作2K,512B 页大小的yaffs文件系统
 
-制作yaffs2工具
-    解压 yaffs_source_util_larger_small_page_nand.tar.bz2
-        tar -xvf yaffs_source_util_larger_small_page_nand.tar.bz2
+    制作yaffs2工具
+        解压 yaffs_source_util_larger_small_page_nand.tar.bz2
+            tar -xvf yaffs_source_util_larger_small_page_nand.tar.bz2
 
-    编译
-        cd Development_util_ok/yaffs2/utils
-        make 
-    拷贝到bin下，并加上只执行权限
-        sudo cp mkyaffs2image /usr/local/bin
-        sudo chmod a+x /usr/local/bin/mkyaffs2image
+        编译
+            cd Development_util_ok/yaffs2/utils
+            make 
+        拷贝到bin下，并加上只执行权限
+            sudo cp mkyaffs2image /usr/local/bin
+            sudo chmod a+x /usr/local/bin/mkyaffs2image
 
 zlib-1.2.11.tar.gz
     制作jffs2需要用到的压缩工具
@@ -66,3 +66,55 @@ gdb-8.2.tar.xz
 
 arm-linux-gcc-3.4.5-glibc-2.3.6.tar.bz2
     jz2440 交叉编译器
+
+tslib-1.4.tar.gz
+    触摸屏的校验、测试库
+    
+gdb/bin
+    使用arm-linux-gcc-3.4.5编译出来的交叉编译gdb 
+    
+tslib-1.4.tar.gz
+    触摸屏的校验程序
+
+        1 先安装编译需要的工具
+            sudo apt-get install autoconf
+            sudo apt-get install automake
+            sudo apt-get install libtool
+
+        2 编译
+            解压 tar xzf tslib-1.4.tar.gz
+            cd tslib
+            ./autogen.sh 
+
+            mkdir tmp;tmp用于存放生成的文件和库
+            echo "ac_cv_func_malloc_0_nonnull=yes" >arm-linux.cache
+            ./configure --host=arm-linux --cache-file=arm-linux.cache --prefix=$(pwd)/tmp
+            make
+            make install;会在tmp下生成bin,etc,include,lib
+
+            安装：
+            cd tmp
+            cp * -rf /nfsroot;nfsroot 是网络文件系统的目录
+
+        3 使用
+            3.1
+            先加载lcd 和 ts的驱动
+
+            3.2
+            修改 /etc/ts.conf第1行(去掉#号和第一个空格)：
+            # module_raw input
+            改为：
+            module_raw input
+
+            3.3
+            export TSLIB_TSDEVICE=/dev/event0
+            export TSLIB_CALIBFILE=/etc/pointercal
+            export TSLIB_CONFFILE=/etc/ts.conf
+            export TSLIB_PLUGINDIR=/lib/ts
+            export TSLIB_CONSOLEDEVICE=none
+            export TSLIB_FBDEVICE=/dev/fb0
+
+            3.4
+            执行/bin/ts_calibrate, 然后在触摸屏上进行校准
+            执行/bin/ts_test, 在触摸屏上滑动，查看光标的跟踪情况
+
