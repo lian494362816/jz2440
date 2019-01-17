@@ -64,4 +64,11 @@
     003_lcd_bmp
         在lcd 屏上显示图片
         
+007_touch_screen
+    001_ts
+        触摸程序
+
+    002_ts_input
+        通过input 子系统来获取触摸屏数据
     
+
