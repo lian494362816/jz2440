@@ -26,7 +26,7 @@ mtd-utils-05.07.23.tar.bz2
     编译
         cd mtd-utils-05.07.23/util
         make 
-        sudo make instal
+        sudo make install
 
     命令
         mkfs.jffs2 -n -s 2048 -e 128KiB -d nfs_root -o nfs_root.jffs2
@@ -67,14 +67,11 @@ gdb-8.2.tar.xz
 arm-linux-gcc-3.4.5-glibc-2.3.6.tar.bz2
     jz2440 交叉编译器
 
-tslib-1.4.tar.gz
-    触摸屏的校验、测试库
-    
 gdb/bin
     使用arm-linux-gcc-3.4.5编译出来的交叉编译gdb 
     
 tslib-1.4.tar.gz
-    触摸屏的校验程序
+    触摸屏的校验、测试库
 
         1 先安装编译需要的工具
             sudo apt-get install autoconf
