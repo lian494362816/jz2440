@@ -4,4 +4,5 @@ fs_mini_mdev_new.tar.bz2
 
 nfs_root.tar.gz
     自己制作的文件系统 
+    解压的时候需要使用sudo
 
