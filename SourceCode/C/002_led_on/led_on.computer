@@ -1,0 +1,29 @@
+
+分析反汇编代码
+led_on.elf:     file format elf32-littlearm
+
+Disassembly of section .text:
+  地址     机器码       汇编指令
+00000000 <_start>:                         这里是pc+20的值, pc = 当前地址+8 = 0 + 8
+			[pc, #20] =  [0 + 8 + 20]  = 28 = 0x1c
+			0x1c 地址的数值是 56000050
+			r1 = 56000050
+   0:	e59f1014 	ldr	r1, [pc, #20]	; 1c <.text+0x1c>
+			r0 = 0x100
+   4:	e3a00c01 	mov	r0, #256	; 0x100
+			56000050 地址的值 = 0x100	
+   8:	e5810000 	str	r0, [r1]
+		  [pc, #12] = [ 0xc + 8 + 12] =  32 = 0x20
+		  0x20 地址的数值是56000054
+		  r1 = 56000054
+   c:	e59f100c 	ldr	r1, [pc, #12]	; 20 <.text+0x20>
+		 r0 = 0
+  10:	e3a00000 	mov	r0, #0	; 0x0
+		56000064地址的值=0
+  14:	e5810000 	str	r0, [r1]
+
+00000018 <loop>:
+地址     数值        汇编指令
+  18:	eafffffe 	b	18 <loop>
+  1c:	56000050 	undefined
+  20:	56000054 	undefined
