@@ -14,4 +14,7 @@
         1449 / %/: prepare scripts FORCE
             =>%/: prepare scripts FORCE
 
+        896 (echo \#define UTS_RELEASE \"$(KERNELRELEASE)\";)
+            =>(echo \#define UTS_RELEASE \"$(KERNELVERSION)\";)
+
     make uImage
