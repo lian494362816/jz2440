@@ -59,6 +59,7 @@ static void ram_block_request(request_queue_t *q)
     }
 }
 
+/* Use for fdisk commond*/
 static int ram_block_getgeo(struct block_device *bdev, struct hd_geometry *geo)
 {
     /* size = heads * cylinders &* sectors * 512 */
