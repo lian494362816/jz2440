@@ -72,12 +72,12 @@ mkdir pts
 cd pts
 sudo mknod ptmx c 5 2
 
-# 5.2 Config telnet account passwd
+# 5.2 Config telnet account:root  passwd:123
 cd ${FILE_SYSTEM_DIR}/etc
 touch passwd group shadow
 echo "root:x:0:0:root:/:bin/sh" > passwd
-echo "root:x:0:0:root:/:bin/sh" > group
-echo "root:$1$FWEOGnxn$KFJzPY1BvXX21Htui48T4/:12179:0:99999:7::" > shadow
+echo "root:x:0:root" > group
+echo "root:\$1\$FWEOGnxn\$KFJzPY1BvXX21Htui48T4/:12179:0:99999:7:::" > shadow
 
 # 6 Create sys tmp mnt
 cd ${FILE_SYSTEM_DIR}
