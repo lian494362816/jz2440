@@ -86,23 +86,23 @@
     
     测试方法：
     方法一：
-    1 加载ko 
-        insmode ram_block_drv.ko
-    2 格式化
-        mkfs.vfat /dev/ramblock
-    3 挂载
-        mount /dev/ramblock /mnt
-    4 写文件到/mnt里面，看是否可以正常保存
-        cd /mnt
-        echo 111111 > 1.txt
-        echo 222222>  2.txt
-    5 取消挂载
-        mount /mnt
-    6 把/dev/ramblock 的内容制作成.bin文件
-        cat /dev/ramblock > /mnt/ramblock.bin
-    7 挂载ramblock.bin 文件 
-        mount -o loop /mnt/ramblock.bin > /tmp
-    8 查看tmp 里面是否有1.txt 2.txt, 若有则表示程序ok
+        1 加载ko 
+            insmode ram_block_drv.ko
+        2 格式化
+            mkfs.vfat /dev/ramblock
+        3 挂载
+            mount /dev/ramblock /mnt
+        4 写文件到/mnt里面，看是否可以正常保存
+            cd /mnt
+            echo 111111 > 1.txt
+            echo 222222>  2.txt
+        5 取消挂载
+            mount /mnt
+        6 把/dev/ramblock 的内容制作成.bin文件
+            cat /dev/ramblock > /mnt/ramblock.bin
+        7 挂载ramblock.bin 文件 
+            mount -o loop /mnt/ramblock.bin > /tmp
+        8 查看tmp 里面是否有1.txt 2.txt, 若有则表示程序ok
 
 
     方法二：
@@ -112,3 +112,37 @@
             mkfs.vfat /dev/ramblock
         3 是fdisk 对 /dev/ramblock进行分区，分区成功后可以测试某个分区
         测试的方法按法一的步骤3~8
+
+010_nand
+    nand flash 驱动
+    
+    测试方法
+
+    1. 去掉kernel 自带的nand flash 驱动, 并重烧kernel
+        Device Drivers
+            -> Memory Technology Device (MTD) support (MTD [=y])
+                -> NAND Flash support for S3C2410/S3C2440 SoC (MTD_NAND_S3C2410 [=n]) 
+
+    2. 加载nand_drv.ko
+        insmod nand_drv.ko
+
+    3. 查看 /dev 下是否有mtd相关的节点
+        [root@2440 \w]#ls /dev/mtd* -l
+        crw-rw----    1 root     root      90,   0 Jan  1 00:11 /dev/mtd0
+        crw-rw----    1 root     root      90,   1 Jan  1 00:11 /dev/mtd0ro
+        crw-rw----    1 root     root      90,   2 Jan  1 00:11 /dev/mtd1
+        crw-rw----    1 root     root      90,   3 Jan  1 00:11 /dev/mtd1ro
+        crw-rw----    1 root     root      90,   4 Jan  1 00:11 /dev/mtd2
+        crw-rw----    1 root     root      90,   5 Jan  1 00:11 /dev/mtd2ro
+        crw-rw----    1 root     root      90,   6 Jan  1 00:11 /dev/mtd3
+        crw-rw----    1 root     root      90,   7 Jan  1 00:11 /dev/mtd3ro
+        brw-rw----    1 root     root      31,   0 Jan  1 00:11 /dev/mtdblock0
+        brw-rw----    1 root     root      31,   1 Jan  1 00:11 /dev/mtdblock1
+        brw-rw----    1 root     root      31,   2 Jan  1 00:11 /dev/mtdblock2
+        brw-rw----    1 root     root      31,   3 Jan  1 00:11 /dev/mtdblock3
+
+    4. 使用flash_eraseall 擦除其中一个分区, 擦除后默认是yaffs2文件系统
+        flash_eraseall /dev/mtd3
+
+    5. 挂载
+        mount -t yaffs2 /dev/mtdblock3  /tmp
