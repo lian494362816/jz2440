@@ -115,3 +115,5 @@ tslib-1.4.tar.gz
             执行/bin/ts_calibrate, 然后在触摸屏上进行校准
             执行/bin/ts_test, 在触摸屏上滑动，查看光标的跟踪情况
 
+zlib_arm
+    使用arm-linux-gcc 编译出来的zlib库
