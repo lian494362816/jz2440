@@ -117,3 +117,6 @@ tslib-1.4.tar.gz
 
 zlib_arm
     使用arm-linux-gcc 编译出来的zlib库
+
+mtd-utils-05.07.23_arm
+    使用arm-linux-gcc 编译出来的mtd 工具
