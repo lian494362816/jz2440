@@ -146,3 +146,29 @@
 
     5. 挂载
         mount -t yaffs2 /dev/mtdblock3  /tmp
+
+010_nor
+    nor flash 驱动
+
+    测试方法
+
+        注：必须选择nor flash驱动，否则cpu无法访问到nor flash
+
+    1, 加载ko
+        insmod nor_drv.ko
+
+    2, 查看/dev 是否有mtd相关节点
+        [root@2440 \w]#ls /dev/mtd* -l
+        crw-rw----    1 root     root      90,   0 Jan  1 00:22 /dev/mtd0
+        crw-rw----    1 root     root      90,   1 Jan  1 00:22 /dev/mtd0ro
+        crw-rw----    1 root     root      90,   2 Jan  1 00:22 /dev/mtd1
+        crw-rw----    1 root     root      90,   3 Jan  1 00:22 /dev/mtd1ro
+        brw-rw----    1 root     root      31,   0 Jan  1 00:22 /dev/mtdblock0
+        brw-rw----    1 root     root      31,   1 Jan  1 00:22 /dev/mtdblock1
+
+    3, 使用flash_eraseall 格式化
+        ./flash_eraseall -j /dev/mtd1  -j 表示jffs2格式
+
+    5, 挂载
+        mount -t jffs2 /dev/mtdblock1  /mnt
+
