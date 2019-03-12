@@ -147,7 +147,7 @@
     5. 挂载
         mount -t yaffs2 /dev/mtdblock3  /tmp
 
-010_nor
+011_nor
     nor flash 驱动
 
     测试方法
@@ -171,4 +171,17 @@
 
     5, 挂载
         mount -t jffs2 /dev/mtdblock1  /mnt
+
+012_net
+    001_vir_net 
+        虚拟网卡驱动
+    002_dm9k
+        dm9000c 网卡驱动
+
+        测试方法    
+            1, 将dm9000c_drv.c 拷贝到drivers/net/
+            2, 修改drivers/net/Makefile 
+                obj-$(CONFIG_DM9000) += dm9dev9000c.o
+                =>obj-$(CONFIG_DM9000) += dm9000c_drv.o
+            3， 重新编译内核并烧录
 
