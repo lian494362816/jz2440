@@ -185,3 +185,22 @@
                 =>obj-$(CONFIG_DM9000) += dm9000c_drv.o
             3， 重新编译内核并烧录
 
+013_iis_wm8976g
+    发现无法写IIS的相关寄存器赋值， 目前还没找到原因
+
+014_new_chr
+    001
+        使用新的方法来实现字符设备 
+
+        测试方法
+            1, 加载ko ii2_wm8976_drv.ko
+            2, 运行测试程序./drv_test /dev/chr_devX, X 代表0,1,2,3,4...
+            发现只有chr_dev0,chr_dev1 可以运行成功
+    002
+        使用相同的主设备号创建2个驱动
+
+        测试方法
+            1, 加载ko ii2_wm8976_drv.ko
+            2, 运行测试程序./drv_test /dev/chr_devX, X 代表0,1,2,3,4...
+            发现chr_dev0,chr_dev1 会打印“open new chr open"
+            发现chr_dev2,chr_dev3 会打印“open 2 new chr open"
