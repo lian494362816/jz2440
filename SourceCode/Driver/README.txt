@@ -204,3 +204,19 @@
             2, 运行测试程序./drv_test /dev/chr_devX, X 代表0,1,2,3,4...
             发现chr_dev0,chr_dev1 会打印“open new chr open"
             发现chr_dev2,chr_dev3 会打印“open 2 new chr open"
+
+015_dma
+    使用DMA 来搬移数据
+
+    测试方法
+        1, 加载ko dma_drv.ko
+        2, 运行测试程序 
+            ./drv_test /dev/dma1 dma; 使用DMA来搬移数据
+            ./drv_test /dev/dma1 cpu; 使用CPU来搬移数据
+
+        程序总共搬移50000次 x 1K bytes
+        实验数据如下:
+            1) 使用cpu:             cpu使用率100%左右， 消耗时间为10.2s 左右
+            2) 使用dma unit  mode : cpu使用率45%左右，  消耗时间为9.1s 左右
+            3) 使用dma burst mode : cpu使用率50%左右，  消耗时间为8.1s 左右
+        
