@@ -220,3 +220,22 @@
             2) 使用dma unit  mode : cpu使用率45%左右，  消耗时间为9.1s 左右
             3) 使用dma burst mode : cpu使用率50%左右，  消耗时间为8.1s 左右
         
+016_reg_editor
+    通过ioctl 来读写寄存器
+    测试程序在 016_reg_editor/drv_test
+
+        1, 先加载ko  reg_editor_drv.ko
+        2, 执行测试程序，命名组成如下
+            ./drv_test <r8|r16|r32> <reg_address> [num] 
+            ./drv_test <w8|w16|w32> <reg_address> <val> 
+
+            [root@2440 \w]#./drv_test  r32 56000050 2
+            [0x56000050]:0x95aa 
+            [0x56000054]:0x7f 
+            [root@2440 \w]#./drv_test w8 56000054 00
+            [0x56000054]:0xf 
+            [root@2440 \w]#./drv_test  r32 56000050 2
+            [0x56000050]:0x95aa 
+            [0x56000054]:0x7 
+            [root@2440 \w]#
+
