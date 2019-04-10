@@ -41,6 +41,7 @@ mtd-utils-05.07.23.tar.bz2
 
 gdb-8.2.tar.xz
     gdb工具
+    8.2版本的gdbsever 需要交叉编译器支持c++11, 因此暂时无法使用到gdbserver
 
     编译
         1)./configure --target=arm-linux --program-prefix=arm-linux- --prefix=/home/black/jz2440/Tool/gdb
@@ -63,6 +64,31 @@ gdb-8.2.tar.xz
             -rwxr-xr-x 1 black root 6.2M 12月 27 13:57 arm-linux-gdb-stripped
             -rwxr-xr-x 1 black root 3.2K 12月 27 13:01 arm-linux-gdb-add-index
             -rwxr-xr-x 1 black root 7.0M 12月 27 13:01 arm-linux-run
+
+gdb-7.4.tar.gz
+    1 gdb 编译
+        1)./configure --target=arm-linux --program-prefix=arm-linux- --prefix=/home/black/jz2440/Tool/gdb-7.4_install/ --disable-werror
+            –target=arm-linux意思是说目标平台是运行于ARM体系结构的linux内核
+            –program-prefix=arm-linux-是指生成的可执行文件的前缀，比如arm-linux-gdb，
+            –prefix是指生成的可执行文件安装在哪个目录，这个目录需要根据实际情况作选择。如果该目录不存在，会自动创建，当然，权限足够的话
+            --disable-werror  忽略一些警告
+
+        2)make 
+        3)make install   可以能会报错，不过最终在gdb-7.4_install 成功产生了arm-linux-gdb
+
+        执行完make install后会在 /home/black/jz2440/Tool/gdb-7.4_install/bin 下生成这三个文件：
+
+        -rwxr-xr-x 1 root  root 22222632 4月  10 18:02 arm-linux-gdb
+        -rwxr-xr-x 1 root  root 22222664 4月  10 18:02 arm-linux-gdbtui
+        -rwxr-xr-x 1 root  root  4523912 4月  10 18:02 arm-linux-run
+    2 gdbserver 编译
+        1)cd gdb-7.4/gdb/gdbserver
+        2)./configure --host=arm-linux
+        3)vim linux-arm-low.c 在里面开头开头添加  #include <linux/ptrace.h>, 不然程序会报错
+        4)make   编译成功后在当前目录会生成gdbserver
+
+        -rwxr-xr-x 1 black root 524434 4月  10 18:09 gdbserver
+
 
 arm-linux-gcc-3.4.5-glibc-2.3.6.tar.bz2
     jz2440 交叉编译器
@@ -115,6 +141,7 @@ tslib-1.4.tar.gz
             执行/bin/ts_calibrate, 然后在触摸屏上进行校准
             执行/bin/ts_test, 在触摸屏上滑动，查看光标的跟踪情况
 
+gdb-7.4.tar.gz
 zlib_arm
     使用arm-linux-gcc 编译出来的zlib库
 
