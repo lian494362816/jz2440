@@ -67,6 +67,7 @@ gdb-8.2.tar.xz
 
 gdb-7.4.tar.gz
     1 gdb 编译
+    注:编译出来的工具只能在PC上运行
         1)./configure --target=arm-linux --program-prefix=arm-linux- --prefix=/home/black/jz2440/Tool/gdb-7.4_install/ --disable-werror
             –target=arm-linux意思是说目标平台是运行于ARM体系结构的linux内核
             –program-prefix=arm-linux-是指生成的可执行文件的前缀，比如arm-linux-gdb，
@@ -81,13 +82,59 @@ gdb-7.4.tar.gz
         -rwxr-xr-x 1 root  root 22222632 4月  10 18:02 arm-linux-gdb
         -rwxr-xr-x 1 root  root 22222664 4月  10 18:02 arm-linux-gdbtui
         -rwxr-xr-x 1 root  root  4523912 4月  10 18:02 arm-linux-run
+
     2 gdbserver 编译
+    注:编译出来的工具只能在arm平台上运行
         1)cd gdb-7.4/gdb/gdbserver
         2)./configure --host=arm-linux
         3)vim linux-arm-low.c 在里面开头开头添加  #include <linux/ptrace.h>, 不然程序会报错
         4)make   编译成功后在当前目录会生成gdbserver
 
         -rwxr-xr-x 1 black root 524434 4月  10 18:09 gdbserver
+
+termcap-1.3.1.tar.gz
+    编译gdb-74._arm 依赖的库
+
+    1) 解压 
+        tar xf termcap-1.3.1.tar.gz
+
+    2) 创建一个临时的目录
+        mkdir tmp
+
+    3) 修改编译工具
+        cd termcap-1.3.1
+        vim Makefile.in
+        第23行 CC = @cc@ 
+        改为==>CC = arm-linux-gcc
+
+    4) 配置 
+         ./configure --prefix=/home/black/jz2440/Tool/tmp/ --host=arm-linux
+
+    5) 编译
+        make 
+        sudo make install
+
+    6) 移动库
+        cp /home/black/jz2440/Tool/tmp/lib/libtermcap.a /opt/gcc-3.4.5-glibc-2.3.6/arm-linux/lib
+
+
+gdb-7.4_arm
+    可以直接在arm平台上运行的gdb, 都是使用的gdb-7.4.tar.gz
+
+    依赖termcap这个库，所以需要先编译termcap-1.3.1.tar.gz 才行
+    
+    1) 配置
+        ./configure --host=arm-linux --program-prefix=arm-linux- --prefix=/home/black/jz2440/Tool/gdb-7.4_arm/gdb-7.4_install --disable-werror --disable-tui
+    
+    2) 修改文件
+        vim linux-arm-low.c 在里面开头开头添加  #include <linux/ptrace.h>, 不然程序会报错
+
+    3) 编译
+        make
+        make install 
+        编译完后在/home/black/jz2440/Tool/gdb-7.4_arm/gdb-7.4_install/bin 下有2个工具
+        -rwxr-xr-x 1 black root 12725530 4月  10 21:49 arm-linux-gdb
+        -rwxr-xr-x 1 black root  2586807 4月  10 21:49 arm-linux-run
 
 
 arm-linux-gcc-3.4.5-glibc-2.3.6.tar.bz2
@@ -141,7 +188,6 @@ tslib-1.4.tar.gz
             执行/bin/ts_calibrate, 然后在触摸屏上进行校准
             执行/bin/ts_test, 在触摸屏上滑动，查看光标的跟踪情况
 
-gdb-7.4.tar.gz
 zlib_arm
     使用arm-linux-gcc 编译出来的zlib库
 
