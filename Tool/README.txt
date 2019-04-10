@@ -120,3 +120,30 @@ zlib_arm
 
 mtd-utils-05.07.23_arm
     使用arm-linux-gcc 编译出来的mtd 工具
+
+strace_patch
+    编译 strace-4.5.16.tar.bz2 时用到的补丁
+
+strace-4.5.16.tar.bz2
+    strace 工具源码
+        
+    编译步骤
+        1,解压 
+            tar -xf strace-4.5.16.tar.bz2
+
+        2,打patch
+            cd strace-4.5.16
+            patch -p1 < ../strace_patch
+            
+        3, 配置
+            ./configure --host=arm-linux CC=arm-linux-gcc
+
+        4, 编译
+            make
+
+        编译完后会在当前目录下产生strace 可执行文件
+        ls -lh strace
+        -rwxr-xr-x 1 black root 377K 4月  10 14:04 strace
+
+
+        
