@@ -13,3 +13,6 @@ busybox_1.7_patch
 
 busybox_1.30_patch
     可以正常编译通过的patch
+
+busybox-1.30.0_gcc-4.3.2.patch
+    针对gcc4.3.2 编译busybox 的版本
