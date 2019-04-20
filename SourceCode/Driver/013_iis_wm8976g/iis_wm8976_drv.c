@@ -126,8 +126,10 @@ enum wm8976_control_pin_e {
 };
 
 static unsigned int wm8976_major = 0;
-struct class *wm8976_class = NULL;
-struct class_device *wm8976_class_dev = NULL;
+static struct class *wm8976_class = NULL;
+static struct class_device *wm8976_class_dev = NULL;
+static struct resource *wm8976_mem_region = NULL;
+
 
 /*
 0x56000040
@@ -206,6 +208,13 @@ static int wm8976_iis_init(void)
 {
     unsigned long flags;
 
+    //wm8976_mem_region = request_mem_region(0x55000000, 0x20, WM8976_MODULE_NAME);
+    if (0)
+    {
+        PRINT_ERR("requse mem region fail \n");
+        return -1;
+    }
+
     iiscon = ioremap(0x55000000, 0x20);
     if (!iiscon)
     {
@@ -266,6 +275,7 @@ static int wm8976_iis_init(void)
         *iisfcon = 8192;
         writel(137, iismod);
         //PRINT_INFO(" iismod:%d \n",  *iismod);
+        __raw_writel(137, iismod);
         PRINT_INFO("iismod readl:%d\n", readl(iismod));
         PRINT_INFO(" iisfcon:%d \n", *iisfcon);
         PRINT_INFO(" iiscon:%d\n",  *iiscon);
@@ -291,6 +301,8 @@ static void wm8976_iis_deinit(void)
 
     iounmap(iis_regs);
     iounmap(clkcon);
+
+    //release_mem_region(0x55000000, 0x20);
 }
 
 static int wm8976_control_pin_set(enum wm8976_control_pin_e pin, int value)
