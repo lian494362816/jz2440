@@ -1,6 +1,6 @@
 
 BUSYBOX_NAME=busybox-1.7.0
-PATH_NAME=busybox_1.7_patch
+PATCH_NAME=busybox_1.7_patch
 
 # remove old busybox
 rm ${BUSYBOX_NAME} -rf
@@ -9,6 +9,6 @@ rm ${BUSYBOX_NAME} -rf
 tar -xf ${BUSYBOX_NAME}.tar.bz2
 
 cd ${BUSYBOX_NAME}
-patch -p1  < ../${PATH_NAME}
-# make menuconfig
+patch -p1  < ../${PACTH_NAME}
+make menuconfig
 make
