@@ -6,4 +6,10 @@
     make 100ask24x0_config
     make
     
-    
+u-boot-2014.01.patch    
+    uboot 2014 01 gcc4.3.2 对应的patch
+    可以配置kernel 3.4.2
+
+    编译
+        make smdk2440_config
+        make
