@@ -70,28 +70,28 @@ struct key_irq_desc key_poll_irqs []= {
         .irq = IRQ_EINT0,
         .handler = key_irq_handler,
         .irq_flags = IRQT_BOTHEDGE,
-        .name "KEY1",
+        .name = "KEY1",
     },
 
     {
         .irq = IRQ_EINT2,
         .handler = key_irq_handler,
         .irq_flags = IRQT_BOTHEDGE,
-        .name "KEY2",
+        .name = "KEY2",
     },
 
     {
         .irq = IRQ_EINT11,
         .handler = key_irq_handler,
         .irq_flags = IRQT_BOTHEDGE,
-        .name "KEY3",
+        .name = "KEY3",
     },
 
     {
         .irq = IRQ_EINT19,
         .handler = key_irq_handler,
         .irq_flags = IRQT_BOTHEDGE,
-        .name "KEY4",
+        .name = "KEY4",
     },
 };
 
