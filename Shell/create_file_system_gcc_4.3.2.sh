@@ -1,11 +1,12 @@
 #!/bin/bash
 
 FILE_SYSTEM_DIR=/home/black/jz2440/nfs_root
-BUSYBOX_DIR=/home/black/jz2440/Busybox/busybox-1.7.0
-# BUSYBOX_DIR=/home/black/jz2440/Busybox/busybox-1.30.0
+# BUSYBOX_DIR=/home/black/jz2440/Busybox/busybox-1.7.0
+BUSYBOX_DIR=/home/black/jz2440/Busybox/busybox-1.30.0
 # ARM_LINUX_LIB_PATH=/opt/gcc-3.4.5-glibc-2.3.6/arm-linux/lib
 # ARM_LINUX_LIB_PATH=/opt/arm-linux-4.3.2/arm-none-linux-gnueabi/libc/lib
 ARM_LINUX_LIB_PATH=/opt/arm-linux-4.3.2/arm-none-linux-gnueabi/libc/armv4t/lib
+ARM_LINUX_USR_LIB_PATH=/opt/arm-linux-4.3.2/arm-none-linux-gnueabi/libc/usr/lib
 
 # 0 create file
 rm ${FILE_SYSTEM_DIR} -rf
@@ -63,11 +64,21 @@ touch profile
 
 echo "PS1='[root@2440 \w]#'" > profile
 
-# 4 Create lib
+# 4.1 Create lib
 cd ${FILE_SYSTEM_DIR}
 mkdir lib
 cd lib
 cp ${ARM_LINUX_LIB_PATH}/*.so* -d ./
+
+# 4.2 Create usr/lib
+cd ${FILE_SYSTEM_DIR}
+mkdir usr/lib -p
+cd usr/lib
+cp ${ARM_LINUX_USR_LIB_PATH}/*.so* -d ./
+
+# 4.3 Create lib/modules/3.4.2
+cd ${FILE_SYSTEM_DIR}
+mkdir lib/modules/3.4.2 -p
 
 # 5.1 Config telnet
 cd ${FILE_SYSTEM_DIR}/dev
