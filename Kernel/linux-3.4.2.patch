@@ -1,6 +1,6 @@
-diff -urpN linux-3.4.2/arch/arm/mach-s3c24xx/common-smdk.c linux-3.4.2_change/arch/arm/mach-s3c24xx/common-smdk.c
+diff -uprN linux-3.4.2/arch/arm/mach-s3c24xx/common-smdk.c linux-3.4.2_change/arch/arm/mach-s3c24xx/common-smdk.c
 --- linux-3.4.2/arch/arm/mach-s3c24xx/common-smdk.c	2012-06-09 23:36:33.000000000 +0800
-+++ linux-3.4.2_change/arch/arm/mach-s3c24xx/common-smdk.c	2019-04-20 04:59:21.970928103 +0800
++++ linux-3.4.2_change/arch/arm/mach-s3c24xx/common-smdk.c	2019-05-08 17:01:36.353932082 +0800
 @@ -110,45 +110,25 @@ static struct platform_device smdk_led7
  
  static struct mtd_partition smdk_default_nand_part[] = {
@@ -57,10 +57,70 @@ diff -urpN linux-3.4.2/arch/arm/mach-s3c24xx/common-smdk.c linux-3.4.2_change/ar
  };
  
  static struct s3c2410_nand_set smdk_nand_sets[] = {
-diff -urpN linux-3.4.2/arch/arm/mach-s3c24xx/mach-smdk2440.c linux-3.4.2_change/arch/arm/mach-s3c24xx/mach-smdk2440.c
+diff -uprN linux-3.4.2/arch/arm/mach-s3c24xx/mach-smdk2440.c linux-3.4.2_change/arch/arm/mach-s3c24xx/mach-smdk2440.c
 --- linux-3.4.2/arch/arm/mach-s3c24xx/mach-smdk2440.c	2012-06-09 23:36:33.000000000 +0800
-+++ linux-3.4.2_change/arch/arm/mach-s3c24xx/mach-smdk2440.c	2019-04-20 03:45:11.793591289 +0800
-@@ -162,7 +162,8 @@ static struct platform_device *smdk2440_
++++ linux-3.4.2_change/arch/arm/mach-s3c24xx/mach-smdk2440.c	2019-05-08 17:04:05.620193146 +0800
+@@ -44,6 +44,8 @@
+ #include <plat/clock.h>
+ #include <plat/devs.h>
+ #include <plat/cpu.h>
++#include <linux/dm9000.h>
++
+ 
+ #include <plat/common-smdk.h>
+ 
+@@ -151,18 +153,59 @@ static struct s3c2410fb_mach_info smdk24
+ 	.lpcsel		= ((0xCE6) & ~7) | 1<<4,
+ };
+ 
++static struct resource smdk_dm9k_resource[] = {
++	[0] = {
++		.start = S3C2410_CS4,
++		.end   = S3C2410_CS4 + 3,
++		.flags = IORESOURCE_MEM
++	},
++	[1] = {
++		.start = S3C2410_CS4 + 4,
++		.end   = S3C2410_CS4 + 7,
++		.flags = IORESOURCE_MEM
++	},
++	[2] = {
++		.start = IRQ_EINT7,
++		.end   = IRQ_EINT7,
++		.flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHEDGE,
++	}
++};
++
++/*
++ * The DM9000 has no eeprom, and it's MAC address is set by
++ * the bootloader before starting the kernel.
++ */
++static struct dm9000_plat_data smdk_dm9k_pdata = {
++	.flags		= (DM9000_PLATF_16BITONLY | DM9000_PLATF_NO_EEPROM),
++};
++
++static struct platform_device smdk_device_eth = {
++	.name		= "dm9000",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(smdk_dm9k_resource),
++	.resource	= smdk_dm9k_resource,
++	.dev		= {
++		.platform_data	= &smdk_dm9k_pdata,
++	},
++};
++
++
+ static struct platform_device *smdk2440_devices[] __initdata = {
+ 	&s3c_device_ohci,
+ 	&s3c_device_lcd,
+ 	&s3c_device_wdt,
+ 	&s3c_device_i2c0,
+ 	&s3c_device_iis,
++
++    //dm9k的资源配置添加到这里才会被调用
++    &smdk_device_eth,
+ };
+ 
  static void __init smdk2440_map_io(void)
  {
  	s3c24xx_init_io(smdk2440_iodesc, ARRAY_SIZE(smdk2440_iodesc));
@@ -70,9 +130,9 @@ diff -urpN linux-3.4.2/arch/arm/mach-s3c24xx/mach-smdk2440.c linux-3.4.2_change/
  	s3c24xx_init_uarts(smdk2440_uartcfgs, ARRAY_SIZE(smdk2440_uartcfgs));
  }
  
-diff -urpN linux-3.4.2/.config linux-3.4.2_change/.config
+diff -uprN linux-3.4.2/.config linux-3.4.2_change/.config
 --- linux-3.4.2/.config	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/.config	2019-04-20 08:29:09.766273180 +0800
++++ linux-3.4.2_change/.config	2019-05-08 17:01:36.357932036 +0800
 @@ -0,0 +1,2851 @@
 +#
 +# Automatically generated file; DO NOT EDIT.
@@ -2925,17 +2985,17 @@ diff -urpN linux-3.4.2/.config linux-3.4.2_change/.config
 +CONFIG_GENERIC_ATOMIC64=y
 +CONFIG_AVERAGE=y
 +# CONFIG_CORDIC is not set
-diff -urpN linux-3.4.2/do_make.sh linux-3.4.2_change/do_make.sh
+diff -uprN linux-3.4.2/do_make.sh linux-3.4.2_change/do_make.sh
 --- linux-3.4.2/do_make.sh	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/do_make.sh	2019-04-20 03:45:38.825697222 +0800
++++ linux-3.4.2_change/do_make.sh	2019-05-08 17:01:36.357932036 +0800
 @@ -0,0 +1,4 @@
 +#!/bin/sh
 +
 +make uImage -j4
 +cp arch/arm/boot/uImage ~/Exchange/
-diff -urpN linux-3.4.2/fs/Kconfig linux-3.4.2_change/fs/Kconfig
+diff -uprN linux-3.4.2/fs/Kconfig linux-3.4.2_change/fs/Kconfig
 --- linux-3.4.2/fs/Kconfig	2012-06-09 23:36:33.000000000 +0800
-+++ linux-3.4.2_change/fs/Kconfig	2019-04-20 05:47:03.813887936 +0800
++++ linux-3.4.2_change/fs/Kconfig	2019-05-08 17:01:36.361931991 +0800
 @@ -203,6 +203,7 @@ source "fs/hfsplus/Kconfig"
  source "fs/befs/Kconfig"
  source "fs/bfs/Kconfig"
@@ -2944,9 +3004,9 @@ diff -urpN linux-3.4.2/fs/Kconfig linux-3.4.2_change/fs/Kconfig
  source "fs/jffs2/Kconfig"
  # UBIFS File system configuration
  source "fs/ubifs/Kconfig"
-diff -urpN linux-3.4.2/fs/Kconfig.pre.yaffs linux-3.4.2_change/fs/Kconfig.pre.yaffs
+diff -uprN linux-3.4.2/fs/Kconfig.pre.yaffs linux-3.4.2_change/fs/Kconfig.pre.yaffs
 --- linux-3.4.2/fs/Kconfig.pre.yaffs	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/Kconfig.pre.yaffs	2012-06-09 23:36:33.000000000 +0800
++++ linux-3.4.2_change/fs/Kconfig.pre.yaffs	2019-05-08 17:01:36.361931991 +0800
 @@ -0,0 +1,279 @@
 +#
 +# File system configuration
@@ -3227,17 +3287,17 @@ diff -urpN linux-3.4.2/fs/Kconfig.pre.yaffs linux-3.4.2_change/fs/Kconfig.pre.ya
 +source "fs/dlm/Kconfig"
 +
 +endmenu
-diff -urpN linux-3.4.2/fs/Makefile linux-3.4.2_change/fs/Makefile
+diff -uprN linux-3.4.2/fs/Makefile linux-3.4.2_change/fs/Makefile
 --- linux-3.4.2/fs/Makefile	2012-06-09 23:36:33.000000000 +0800
-+++ linux-3.4.2_change/fs/Makefile	2019-04-20 05:47:03.817888048 +0800
++++ linux-3.4.2_change/fs/Makefile	2019-05-08 17:01:36.361931991 +0800
 @@ -125,3 +125,4 @@ obj-$(CONFIG_GFS2_FS)           += gfs2/
  obj-y				+= exofs/ # Multiple modules
  obj-$(CONFIG_CEPH_FS)		+= ceph/
  obj-$(CONFIG_PSTORE)		+= pstore/
 +obj-$(CONFIG_YAFFS_FS)		+= yaffs2/
-diff -urpN linux-3.4.2/fs/Makefile.pre.yaffs linux-3.4.2_change/fs/Makefile.pre.yaffs
+diff -uprN linux-3.4.2/fs/Makefile.pre.yaffs linux-3.4.2_change/fs/Makefile.pre.yaffs
 --- linux-3.4.2/fs/Makefile.pre.yaffs	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/Makefile.pre.yaffs	2019-04-20 05:47:03.817888048 +0800
++++ linux-3.4.2_change/fs/Makefile.pre.yaffs	2019-05-08 17:01:36.361931991 +0800
 @@ -0,0 +1,127 @@
 +#
 +# Makefile for the Linux filesystems.
@@ -3366,9 +3426,9 @@ diff -urpN linux-3.4.2/fs/Makefile.pre.yaffs linux-3.4.2_change/fs/Makefile.pre.
 +obj-y				+= exofs/ # Multiple modules
 +obj-$(CONFIG_CEPH_FS)		+= ceph/
 +obj-$(CONFIG_PSTORE)		+= pstore/
-diff -urpN linux-3.4.2/fs/yaffs2/Kconfig linux-3.4.2_change/fs/yaffs2/Kconfig
+diff -uprN linux-3.4.2/fs/yaffs2/Kconfig linux-3.4.2_change/fs/yaffs2/Kconfig
 --- linux-3.4.2/fs/yaffs2/Kconfig	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/Kconfig	2019-04-20 06:50:21.321867686 +0800
++++ linux-3.4.2_change/fs/yaffs2/Kconfig	2019-05-08 17:01:36.361931991 +0800
 @@ -0,0 +1,171 @@
 +#
 +# yaffs file system configurations
@@ -3541,9 +3601,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/Kconfig linux-3.4.2_change/fs/yaffs2/Kconfig
 +	help
 +	 If this is set then yaffs2 will provide xattr support.
 +	 If unsure, say Y.
-diff -urpN linux-3.4.2/fs/yaffs2/Makefile linux-3.4.2_change/fs/yaffs2/Makefile
+diff -uprN linux-3.4.2/fs/yaffs2/Makefile linux-3.4.2_change/fs/yaffs2/Makefile
 --- linux-3.4.2/fs/yaffs2/Makefile	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/Makefile	2019-04-20 06:50:21.321867686 +0800
++++ linux-3.4.2_change/fs/yaffs2/Makefile	2019-05-08 17:01:36.361931991 +0800
 @@ -0,0 +1,19 @@
 +#
 +# Makefile for the linux YAFFS filesystem routines.
@@ -3564,9 +3624,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/Makefile linux-3.4.2_change/fs/yaffs2/Makefile
 +yaffs-y += yaffs_summary.o
 +yaffs-y += yaffs_verify.o
 +
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_allocator.c linux-3.4.2_change/fs/yaffs2/yaffs_allocator.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_allocator.c linux-3.4.2_change/fs/yaffs2/yaffs_allocator.c
 --- linux-3.4.2/fs/yaffs2/yaffs_allocator.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_allocator.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_allocator.c	2019-05-08 17:01:36.361931991 +0800
 @@ -0,0 +1,356 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -3924,9 +3984,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_allocator.c linux-3.4.2_change/fs/yaffs2/
 +	}
 +}
 +
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_allocator.h linux-3.4.2_change/fs/yaffs2/yaffs_allocator.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_allocator.h linux-3.4.2_change/fs/yaffs2/yaffs_allocator.h
 --- linux-3.4.2/fs/yaffs2/yaffs_allocator.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_allocator.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_allocator.h	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,29 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -3957,9 +4017,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_allocator.h linux-3.4.2_change/fs/yaffs2/
 +void yaffs_free_raw_obj(struct yaffs_dev *dev, struct yaffs_obj *obj);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_attribs.c linux-3.4.2_change/fs/yaffs2/yaffs_attribs.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_attribs.c linux-3.4.2_change/fs/yaffs2/yaffs_attribs.c
 --- linux-3.4.2/fs/yaffs2/yaffs_attribs.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_attribs.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_attribs.c	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,135 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -4096,9 +4156,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_attribs.c linux-3.4.2_change/fs/yaffs2/ya
 +
 +	return YAFFS_OK;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_attribs.h linux-3.4.2_change/fs/yaffs2/yaffs_attribs.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_attribs.h linux-3.4.2_change/fs/yaffs2/yaffs_attribs.h
 --- linux-3.4.2/fs/yaffs2/yaffs_attribs.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_attribs.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_attribs.h	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,27 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -4127,9 +4187,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_attribs.h linux-3.4.2_change/fs/yaffs2/ya
 +int yaffs_get_attribs(struct yaffs_obj *obj, struct iattr *attr);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_bitmap.c linux-3.4.2_change/fs/yaffs2/yaffs_bitmap.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_bitmap.c linux-3.4.2_change/fs/yaffs2/yaffs_bitmap.c
 --- linux-3.4.2/fs/yaffs2/yaffs_bitmap.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_bitmap.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_bitmap.c	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,98 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -4229,9 +4289,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_bitmap.c linux-3.4.2_change/fs/yaffs2/yaf
 +
 +	return n;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_bitmap.h linux-3.4.2_change/fs/yaffs2/yaffs_bitmap.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_bitmap.h linux-3.4.2_change/fs/yaffs2/yaffs_bitmap.h
 --- linux-3.4.2/fs/yaffs2/yaffs_bitmap.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_bitmap.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_bitmap.h	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,32 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -4265,9 +4325,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_bitmap.h linux-3.4.2_change/fs/yaffs2/yaf
 +int yaffs_count_chunk_bits(struct yaffs_dev *dev, int blk);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_checkptrw.c linux-3.4.2_change/fs/yaffs2/yaffs_checkptrw.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_checkptrw.c linux-3.4.2_change/fs/yaffs2/yaffs_checkptrw.c
 --- linux-3.4.2/fs/yaffs2/yaffs_checkptrw.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_checkptrw.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_checkptrw.c	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,480 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -4749,9 +4809,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_checkptrw.c linux-3.4.2_change/fs/yaffs2/
 +
 +	return yaffs_checkpt_erase(dev);
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_checkptrw.h linux-3.4.2_change/fs/yaffs2/yaffs_checkptrw.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_checkptrw.h linux-3.4.2_change/fs/yaffs2/yaffs_checkptrw.h
 --- linux-3.4.2/fs/yaffs2/yaffs_checkptrw.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_checkptrw.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_checkptrw.h	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,32 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -4785,9 +4845,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_checkptrw.h linux-3.4.2_change/fs/yaffs2/
 +int yaffs2_checkpt_invalidate_stream(struct yaffs_dev *dev);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_ecc.c linux-3.4.2_change/fs/yaffs2/yaffs_ecc.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_ecc.c linux-3.4.2_change/fs/yaffs2/yaffs_ecc.c
 --- linux-3.4.2/fs/yaffs2/yaffs_ecc.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_ecc.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_ecc.c	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,280 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -5069,9 +5129,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_ecc.c linux-3.4.2_change/fs/yaffs2/yaffs_
 +
 +	return -1;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_ecc.h linux-3.4.2_change/fs/yaffs2/yaffs_ecc.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_ecc.h linux-3.4.2_change/fs/yaffs2/yaffs_ecc.h
 --- linux-3.4.2/fs/yaffs2/yaffs_ecc.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_ecc.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_ecc.h	2019-05-08 17:01:36.365931945 +0800
 @@ -0,0 +1,43 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -5116,9 +5176,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_ecc.h linux-3.4.2_change/fs/yaffs2/yaffs_
 +			    struct yaffs_ecc_other *read_ecc,
 +			    const struct yaffs_ecc_other *test_ecc);
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_endian.c linux-3.4.2_change/fs/yaffs2/yaffs_endian.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_endian.c linux-3.4.2_change/fs/yaffs2/yaffs_endian.c
 --- linux-3.4.2/fs/yaffs2/yaffs_endian.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_endian.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_endian.c	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,105 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -5225,9 +5285,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_endian.c linux-3.4.2_change/fs/yaffs2/yaf
 +	if (dev->swap_endian)
 +		dev->tn_swap_buffer = kmalloc(dev->tnode_size, GFP_NOFS);
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_endian.h linux-3.4.2_change/fs/yaffs2/yaffs_endian.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_endian.h linux-3.4.2_change/fs/yaffs2/yaffs_endian.h
 --- linux-3.4.2/fs/yaffs2/yaffs_endian.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_endian.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_endian.h	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,54 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -5283,9 +5343,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_endian.h linux-3.4.2_change/fs/yaffs2/yaf
 +void yaffs_endian_config(struct yaffs_dev *dev);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_getblockinfo.h linux-3.4.2_change/fs/yaffs2/yaffs_getblockinfo.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_getblockinfo.h linux-3.4.2_change/fs/yaffs2/yaffs_getblockinfo.h
 --- linux-3.4.2/fs/yaffs2/yaffs_getblockinfo.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_getblockinfo.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_getblockinfo.h	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,35 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -5322,9 +5382,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_getblockinfo.h linux-3.4.2_change/fs/yaff
 +}
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_guts.c linux-3.4.2_change/fs/yaffs2/yaffs_guts.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_guts.c linux-3.4.2_change/fs/yaffs2/yaffs_guts.c
 --- linux-3.4.2/fs/yaffs2/yaffs_guts.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_guts.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_guts.c	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,5212 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -10538,9 +10598,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_guts.c linux-3.4.2_change/fs/yaffs2/yaffs
 +			bs[s]++;
 +	}
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_guts.h linux-3.4.2_change/fs/yaffs2/yaffs_guts.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_guts.h linux-3.4.2_change/fs/yaffs2/yaffs_guts.h
 --- linux-3.4.2/fs/yaffs2/yaffs_guts.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_guts.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_guts.h	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,1069 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -11611,9 +11671,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_guts.h linux-3.4.2_change/fs/yaffs2/yaffs
 +
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_linux.h linux-3.4.2_change/fs/yaffs2/yaffs_linux.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_linux.h linux-3.4.2_change/fs/yaffs2/yaffs_linux.h
 --- linux-3.4.2/fs/yaffs2/yaffs_linux.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_linux.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_linux.h	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,47 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -11662,9 +11722,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_linux.h linux-3.4.2_change/fs/yaffs2/yaff
 +#endif
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_mtdif.c linux-3.4.2_change/fs/yaffs2/yaffs_mtdif.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_mtdif.c linux-3.4.2_change/fs/yaffs2/yaffs_mtdif.c
 --- linux-3.4.2/fs/yaffs2/yaffs_mtdif.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_mtdif.c	2019-04-20 06:50:21.337868096 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_mtdif.c	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,313 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -11979,9 +12039,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_mtdif.c linux-3.4.2_change/fs/yaffs2/yaff
 +	if (mtd)
 +		put_mtd_device(mtd);
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_mtdif.h linux-3.4.2_change/fs/yaffs2/yaffs_mtdif.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_mtdif.h linux-3.4.2_change/fs/yaffs2/yaffs_mtdif.h
 --- linux-3.4.2/fs/yaffs2/yaffs_mtdif.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_mtdif.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_mtdif.h	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,24 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -12007,9 +12067,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_mtdif.h linux-3.4.2_change/fs/yaffs2/yaff
 +void yaffs_put_mtd_device(struct mtd_info *mtd);
 +int yaffs_verify_mtd(struct mtd_info *mtd, int yaffs_version, int inband_tags);
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_nameval.c linux-3.4.2_change/fs/yaffs2/yaffs_nameval.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_nameval.c linux-3.4.2_change/fs/yaffs2/yaffs_nameval.c
 --- linux-3.4.2/fs/yaffs2/yaffs_nameval.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_nameval.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_nameval.c	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,229 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -12240,9 +12300,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_nameval.c linux-3.4.2_change/fs/yaffs2/ya
 +{
 +	return nval_used(dev, xb, xb_size) > 0;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_nameval.h linux-3.4.2_change/fs/yaffs2/yaffs_nameval.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_nameval.h linux-3.4.2_change/fs/yaffs2/yaffs_nameval.h
 --- linux-3.4.2/fs/yaffs2/yaffs_nameval.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_nameval.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_nameval.h	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,32 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -12276,9 +12336,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_nameval.h linux-3.4.2_change/fs/yaffs2/ya
 +	      const char *xb, int xb_size, char *buf, int bsize);
 +int nval_hasvalues(struct yaffs_dev *dev, const char *xb, int xb_size);
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_nand.c linux-3.4.2_change/fs/yaffs2/yaffs_nand.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_nand.c linux-3.4.2_change/fs/yaffs2/yaffs_nand.c
 --- linux-3.4.2/fs/yaffs2/yaffs_nand.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_nand.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_nand.c	2019-05-08 17:01:36.369931899 +0800
 @@ -0,0 +1,121 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -12401,9 +12461,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_nand.c linux-3.4.2_change/fs/yaffs2/yaffs
 +		return dev->drv.drv_deinitialise_fn(dev);
 +	return YAFFS_OK;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_nand.h linux-3.4.2_change/fs/yaffs2/yaffs_nand.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_nand.h linux-3.4.2_change/fs/yaffs2/yaffs_nand.h
 --- linux-3.4.2/fs/yaffs2/yaffs_nand.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_nand.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_nand.h	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,38 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -12443,9 +12503,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_nand.h linux-3.4.2_change/fs/yaffs2/yaffs
 +int yaffs_deinit_nand(struct yaffs_dev *dev);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_packedtags1.c linux-3.4.2_change/fs/yaffs2/yaffs_packedtags1.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_packedtags1.c linux-3.4.2_change/fs/yaffs2/yaffs_packedtags1.c
 --- linux-3.4.2/fs/yaffs2/yaffs_packedtags1.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_packedtags1.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_packedtags1.c	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,54 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -12501,9 +12561,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_packedtags1.c linux-3.4.2_change/fs/yaffs
 +		memset(t, 0, sizeof(struct yaffs_ext_tags));
 +	}
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_packedtags1.h linux-3.4.2_change/fs/yaffs2/yaffs_packedtags1.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_packedtags1.h linux-3.4.2_change/fs/yaffs2/yaffs_packedtags1.h
 --- linux-3.4.2/fs/yaffs2/yaffs_packedtags1.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_packedtags1.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_packedtags1.h	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,38 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -12543,9 +12603,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_packedtags1.h linux-3.4.2_change/fs/yaffs
 +void yaffs_unpack_tags1(struct yaffs_ext_tags *t,
 +			const struct yaffs_packed_tags1 *pt);
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_packedtags2.c linux-3.4.2_change/fs/yaffs2/yaffs_packedtags2.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_packedtags2.c linux-3.4.2_change/fs/yaffs2/yaffs_packedtags2.c
 --- linux-3.4.2/fs/yaffs2/yaffs_packedtags2.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_packedtags2.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_packedtags2.c	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,207 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -12754,9 +12814,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_packedtags2.c linux-3.4.2_change/fs/yaffs
 +	yaffs_dump_packed_tags2(pt);
 +	yaffs_dump_tags2(t);
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_packedtags2.h linux-3.4.2_change/fs/yaffs2/yaffs_packedtags2.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_packedtags2.h linux-3.4.2_change/fs/yaffs2/yaffs_packedtags2.h
 --- linux-3.4.2/fs/yaffs2/yaffs_packedtags2.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_packedtags2.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_packedtags2.h	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,50 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -12808,9 +12868,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_packedtags2.h linux-3.4.2_change/fs/yaffs
 +				  struct yaffs_ext_tags *t,
 +				  struct yaffs_packed_tags2_tags_only *pt);
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_summary.c linux-3.4.2_change/fs/yaffs2/yaffs_summary.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_summary.c linux-3.4.2_change/fs/yaffs2/yaffs_summary.c
 --- linux-3.4.2/fs/yaffs2/yaffs_summary.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_summary.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_summary.c	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,309 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -13121,9 +13181,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_summary.c linux-3.4.2_change/fs/yaffs2/ya
 +		}
 +	}
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_summary.h linux-3.4.2_change/fs/yaffs2/yaffs_summary.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_summary.h linux-3.4.2_change/fs/yaffs2/yaffs_summary.h
 --- linux-3.4.2/fs/yaffs2/yaffs_summary.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_summary.h	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_summary.h	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,36 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -13161,9 +13221,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_summary.h linux-3.4.2_change/fs/yaffs2/ya
 +
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_tagscompat.c linux-3.4.2_change/fs/yaffs2/yaffs_tagscompat.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_tagscompat.c linux-3.4.2_change/fs/yaffs2/yaffs_tagscompat.c
 --- linux-3.4.2/fs/yaffs2/yaffs_tagscompat.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_tagscompat.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_tagscompat.c	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,399 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -13564,9 +13624,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_tagscompat.c linux-3.4.2_change/fs/yaffs2
 +	if(!dev->tagger.mark_bad_fn)
 +		dev->tagger.mark_bad_fn = yaffs_tags_compat_mark_bad;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_tagscompat.h linux-3.4.2_change/fs/yaffs2/yaffs_tagscompat.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_tagscompat.h linux-3.4.2_change/fs/yaffs2/yaffs_tagscompat.h
 --- linux-3.4.2/fs/yaffs2/yaffs_tagscompat.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_tagscompat.h	2019-04-20 06:50:21.329867891 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_tagscompat.h	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,43 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -13611,9 +13671,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_tagscompat.h linux-3.4.2_change/fs/yaffs2
 +int yaffs_check_tags_ecc(struct yaffs_tags *tags);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_tagsmarshall.c linux-3.4.2_change/fs/yaffs2/yaffs_tagsmarshall.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_tagsmarshall.c linux-3.4.2_change/fs/yaffs2/yaffs_tagsmarshall.c
 --- linux-3.4.2/fs/yaffs2/yaffs_tagsmarshall.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_tagsmarshall.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_tagsmarshall.c	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,205 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -13820,9 +13880,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_tagsmarshall.c linux-3.4.2_change/fs/yaff
 +		dev->tagger.mark_bad_fn = yaffs_tags_marshall_mark_bad;
 +
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_tagsmarshall.h linux-3.4.2_change/fs/yaffs2/yaffs_tagsmarshall.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_tagsmarshall.h linux-3.4.2_change/fs/yaffs2/yaffs_tagsmarshall.h
 --- linux-3.4.2/fs/yaffs2/yaffs_tagsmarshall.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_tagsmarshall.h	2019-04-20 06:50:21.329867891 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_tagsmarshall.h	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,21 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -13845,9 +13905,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_tagsmarshall.h linux-3.4.2_change/fs/yaff
 +void yaffs_tags_marshall_install(struct yaffs_dev *dev);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_trace.h linux-3.4.2_change/fs/yaffs2/yaffs_trace.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_trace.h linux-3.4.2_change/fs/yaffs2/yaffs_trace.h
 --- linux-3.4.2/fs/yaffs2/yaffs_trace.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_trace.h	2019-04-20 06:50:21.329867891 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_trace.h	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,56 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -13905,9 +13965,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_trace.h linux-3.4.2_change/fs/yaffs2/yaff
 +#define YAFFS_TRACE_ALWAYS		0xf0000000
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_verify.c linux-3.4.2_change/fs/yaffs2/yaffs_verify.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_verify.c linux-3.4.2_change/fs/yaffs2/yaffs_verify.c
 --- linux-3.4.2/fs/yaffs2/yaffs_verify.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_verify.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_verify.c	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,539 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -14448,9 +14508,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_verify.c linux-3.4.2_change/fs/yaffs2/yaf
 +	(void) in;
 +	return YAFFS_OK;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_verify.h linux-3.4.2_change/fs/yaffs2/yaffs_verify.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_verify.h linux-3.4.2_change/fs/yaffs2/yaffs_verify.h
 --- linux-3.4.2/fs/yaffs2/yaffs_verify.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_verify.h	2019-04-20 06:50:21.329867891 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_verify.h	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,42 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -14494,9 +14554,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_verify.h linux-3.4.2_change/fs/yaffs2/yaf
 +int yaffs_skip_verification(struct yaffs_dev *dev);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_vfs.c linux-3.4.2_change/fs/yaffs2/yaffs_vfs.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_vfs.c linux-3.4.2_change/fs/yaffs2/yaffs_vfs.c
 --- linux-3.4.2/fs/yaffs2/yaffs_vfs.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_vfs.c	2019-04-20 06:50:21.333867994 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_vfs.c	2019-05-08 17:01:36.373931854 +0800
 @@ -0,0 +1,3796 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -18294,9 +18354,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_vfs.c linux-3.4.2_change/fs/yaffs2/yaffs_
 +MODULE_DESCRIPTION("YAFFS2 - a NAND specific flash file system");
 +MODULE_AUTHOR("Charles Manning, Aleph One Ltd., 2002-2011");
 +MODULE_LICENSE("GPL");
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_yaffs1.c linux-3.4.2_change/fs/yaffs2/yaffs_yaffs1.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_yaffs1.c linux-3.4.2_change/fs/yaffs2/yaffs_yaffs1.c
 --- linux-3.4.2/fs/yaffs2/yaffs_yaffs1.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_yaffs1.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_yaffs1.c	2019-05-08 17:01:36.377931808 +0800
 @@ -0,0 +1,423 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -18721,9 +18781,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_yaffs1.c linux-3.4.2_change/fs/yaffs2/yaf
 +
 +	return YAFFS_OK;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_yaffs1.h linux-3.4.2_change/fs/yaffs2/yaffs_yaffs1.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_yaffs1.h linux-3.4.2_change/fs/yaffs2/yaffs_yaffs1.h
 --- linux-3.4.2/fs/yaffs2/yaffs_yaffs1.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_yaffs1.h	2019-04-20 06:50:21.329867891 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_yaffs1.h	2019-05-08 17:01:36.377931808 +0800
 @@ -0,0 +1,21 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -18746,9 +18806,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_yaffs1.h linux-3.4.2_change/fs/yaffs2/yaf
 +int yaffs1_scan(struct yaffs_dev *dev);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_yaffs2.c linux-3.4.2_change/fs/yaffs2/yaffs_yaffs2.c
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_yaffs2.c linux-3.4.2_change/fs/yaffs2/yaffs_yaffs2.c
 --- linux-3.4.2/fs/yaffs2/yaffs_yaffs2.c	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_yaffs2.c	2019-04-20 06:50:21.325867789 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_yaffs2.c	2019-05-08 17:01:36.377931808 +0800
 @@ -0,0 +1,1711 @@
 +/*
 + * YAFFS: Yet Another Flash File System. A NAND-flash specific file system.
@@ -20461,9 +20521,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_yaffs2.c linux-3.4.2_change/fs/yaffs2/yaf
 +
 +	return YAFFS_OK;
 +}
-diff -urpN linux-3.4.2/fs/yaffs2/yaffs_yaffs2.h linux-3.4.2_change/fs/yaffs2/yaffs_yaffs2.h
+diff -uprN linux-3.4.2/fs/yaffs2/yaffs_yaffs2.h linux-3.4.2_change/fs/yaffs2/yaffs_yaffs2.h
 --- linux-3.4.2/fs/yaffs2/yaffs_yaffs2.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yaffs_yaffs2.h	2019-04-20 06:50:21.329867891 +0800
++++ linux-3.4.2_change/fs/yaffs2/yaffs_yaffs2.h	2019-05-08 17:01:36.377931808 +0800
 @@ -0,0 +1,38 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -20503,9 +20563,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yaffs_yaffs2.h linux-3.4.2_change/fs/yaffs2/yaf
 +int yaffs2_scan_backwards(struct yaffs_dev *dev);
 +
 +#endif
-diff -urpN linux-3.4.2/fs/yaffs2/yportenv.h linux-3.4.2_change/fs/yaffs2/yportenv.h
+diff -uprN linux-3.4.2/fs/yaffs2/yportenv.h linux-3.4.2_change/fs/yaffs2/yportenv.h
 --- linux-3.4.2/fs/yaffs2/yportenv.h	1970-01-01 08:00:00.000000000 +0800
-+++ linux-3.4.2_change/fs/yaffs2/yportenv.h	2019-04-20 06:50:21.337868096 +0800
++++ linux-3.4.2_change/fs/yaffs2/yportenv.h	2019-05-08 17:01:36.377931808 +0800
 @@ -0,0 +1,92 @@
 +/*
 + * YAFFS: Yet another Flash File System . A NAND-flash specific file system.
@@ -20599,9 +20659,9 @@ diff -urpN linux-3.4.2/fs/yaffs2/yportenv.h linux-3.4.2_change/fs/yaffs2/yporten
 +
 +
 +#endif
-diff -urpN linux-3.4.2/kernel/timeconst.pl linux-3.4.2_change/kernel/timeconst.pl
+diff -uprN linux-3.4.2/kernel/timeconst.pl linux-3.4.2_change/kernel/timeconst.pl
 --- linux-3.4.2/kernel/timeconst.pl	2012-06-09 23:36:33.000000000 +0800
-+++ linux-3.4.2_change/kernel/timeconst.pl	2019-04-20 03:10:13.911320907 +0800
++++ linux-3.4.2_change/kernel/timeconst.pl	2019-05-08 17:01:36.377931808 +0800
 @@ -370,7 +370,8 @@ if ($hz eq '--can') {
  	}
  
@@ -20612,9 +20672,9 @@ diff -urpN linux-3.4.2/kernel/timeconst.pl linux-3.4.2_change/kernel/timeconst.p
  		@val = compute_values($hz);
  	}
  	output($hz, @val);
-diff -urpN linux-3.4.2/Makefile linux-3.4.2_change/Makefile
+diff -uprN linux-3.4.2/Makefile linux-3.4.2_change/Makefile
 --- linux-3.4.2/Makefile	2012-06-09 23:36:33.000000000 +0800
-+++ linux-3.4.2_change/Makefile	2019-04-20 03:05:36.559274572 +0800
++++ linux-3.4.2_change/Makefile	2019-05-08 17:01:36.377931808 +0800
 @@ -192,8 +192,10 @@ SUBARCH := $(shell uname -m | sed -e s/i
  # Default value for CROSS_COMPILE is not to prefix executables
  # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile

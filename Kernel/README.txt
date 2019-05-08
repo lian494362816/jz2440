@@ -32,3 +32,9 @@ linux-2.6.22.6_new.patch
 
         3. make uImage -j4
 
+linux-3.4.2.tar.bz2
+    3.4.2 kernel 
+
+linux-3.4.2.patch
+    板子可以基本的跑起立，网络也调试通了
+    
