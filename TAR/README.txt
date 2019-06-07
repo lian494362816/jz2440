@@ -10,3 +10,6 @@ yaffs2.tar.gz
     yaffs2 源码
     网站：https://yaffs.net/get-yaffs
     下载地址: git clone git://www.aleph1.co.uk/yaffs2
+
+arm-alsa.tar.gz
+    使用arm-linux-gcc 4.3.2 编译出来的alsa-lib alsa-utils
