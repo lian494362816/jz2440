@@ -12,6 +12,9 @@
 arm-alsa.tar.gz
     使用交叉编译arm-linux-4.3.2 编译好的alsa库
 
+Wav_File
+    测试播放用的wav文件
+
 linux-3.4.2_alsa.patch
     制作好的patch
 
