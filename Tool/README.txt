@@ -248,3 +248,97 @@ Debug
                 3.4
                 执行/bin/ts_calibrate, 然后在触摸屏上进行校准
                 执行/bin/ts_test, 在触摸屏上滑动，查看光标的跟踪情况
+
+=====Wireless=====
+    libnl-3.2.23.tar.gz
+        编译iw工具依赖的库
+        编译步骤
+             1. 配置
+                ./configure  --host=arm-linux --prefix=$PWD/tmp
+             2. 编译
+                make 
+             3. 安装
+                make install
+             4. 拷贝库和头文件 
+                4.1 cd tmp/include/libnl3
+                4.2 sudo cp netlink -rf /opt/arm-linux-4.3.2/arm-none-linux-gnueabi/libc/usr/include/
+                4.3 cd tmp
+                4.4 sudo cp lib/* -rfd /opt/arm-linux-4.3.2/arm-none-linux-gnueabi/libc/armv4t/lib/
+                4.5 将生成的库拷贝到文件系统的lib目录下  cp lib/* -rfd ~/jz2440/nfs_root/lib/
+
+    iw-3.11.tar.bz2  
+        搜索WiFi的工具
+        编译步骤
+            1 修改Makefile 
+            2 make
+            3 将生成的 iw 拷贝到文件系统的bin目录下 cp iw -rfd ~/jz2440/nfs_root/bin
+
+
+    openssl-1.0.1d.tar.gz 
+        编译 wpa_supplicant工具依赖的库 
+        编译步骤
+        1.  ./config shared no-asm --prefix=$PWD/tmp
+        2.  修改Makefile:
+                CC= arm-linux-gcc
+                AR= arm-linux-ar $(ARFLAGS) r
+                RANLIB= arm-linux-ranlib
+                NM= arm-linux-nm
+                MAKEDEPPROG= arm-linux-gcc
+        3.  编译
+            make
+            make install
+        4. 将生成的 openssl-1.0.1d/tmm/lib 库拷贝到文件系统的bin目录下 cp ./lib* -rfd ~/jz2440/nfs_root/bin
+
+    wpa_supplicant-2.0.tar.gz
+        连接Wifi的工具, open WEP WPA WPA2 的加密/认证
+        1. 配置 .config
+            cd wpa_supplicant-2.0/wpa_supplicant
+            cp defconfig  .config 
+            打开.config 在里面加上： CONFIG_LIBNL32=y
+        2. 修改Makefile
+            CC=arm-linux-gcc    
+
+            CFLAGS += -I../../openssl-1.0.1d/tmp/include
+            CFLAGS += -I../../libnl-3.2.23/tmp/include
+            CFLAGS += -I../../libnl-3.2.23/tmp/include/libnl3/
+
+            LDFLAGS += -L../../openssl-1.0.1d/tmp/lib
+            LDFLAGS += -L../../libnl-3.2.23/tmp/lib
+        3. 编译
+            make 
+            make DESTDIR=$PWD/tmp install
+        4.  路径：wpa_supplicant/tmp/usr/local/sbin 下的文件就是需要的bin档
+
+    dhcp-4.2.5-P1.tar.gz
+        动态设置ip的工具
+        1. 配置 
+            ./configure --host=arm-linux ac_cv_file__dev_random=yes
+
+        2. 修改lib/export/dns/Makefile.in 
+            cd bin  
+            tar -xf tar xzf dhcp-4.2.5-P1.tar.gz
+            cd bind-9.8.4-P2
+            vim lib/export/dns/Makefile.in (168行)
+                gen: ${srcdir}/gen.c
+                ${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ ${srcdir}/gen.c ${LIBS}
+                ==>
+                gen: ${srcdir}/gen.c
+                ${BUILD_CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ ${srcdir}/gen.c ${LIBS}
+        3. 编译
+            回到顶层目录 dhcp-4.2.5-P1
+            make 
+            make DESTDIR=$PWD/tmp install
+        4. 拷贝
+            dhcp-4.2.5-P1/tmp/usr/local/bin/* 拷贝到文件系统的bin
+            dhcp-4.2.5-P1/tmp/usr/local/sbin/* 拷贝到文件系统的sbin
+            dhcp-4.2.5-P1/tmp/usr/local/etc/* 拷贝到文件系统的etc
+            dhcp-4.2.5-P1/client/scripts/linux  拷贝到文件系统的sbin
+        5. 修改linux
+            文件系统sbin下的linux 改名为dhclient-script
+            vim dhclient-scripts
+                #!/bin/bash
+                ==>
+                #!/bin/sh
+
+
+
